@@ -17,4 +17,5 @@ Gem::Specification.new do |s|
   s.files = `git ls-files`.split("\n")
   s.add_development_dependency "archive-tar-minitar", ">= 0.5.2"
   s.add_development_dependency 'rake', '~> 0.9.2'
+  s.add_development_dependency 'minitar-cli'
 end
