@@ -1,3 +1,7 @@
+## [0.10.10](https://github.com/os97673/debase-ruby_core_source/compare/v0.10.9...v0.10.10)
+
+* removed ruby 2.7.0 preview sources to avoid falling back on them for release versions
+
 ## [0.10.9](https://github.com/os97673/debase-ruby_core_source/compare/v0.10.8...v0.10.9)
 
 * ruby 2.7.0 added (contributed by [ViugiNick](https://github.com/ViugiNick))
