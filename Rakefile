@@ -46,7 +46,7 @@ task :add_source do
     minor_version = version.split('.')[0..1].join('.')
     uri_path = "http://ftp.ruby-lang.org/pub/ruby/#{minor_version}/#{ruby_dir}.tar.gz"
     puts "Downloading #{uri_path}..."
-    temp = open(uri_path)
+    temp = URI.open(uri_path)
   end
   puts "Unpacking #{uri_path}..."
   tgz = Zlib::GzipReader.new(File.open(temp, "rb"))
@@ -54,13 +54,16 @@ task :add_source do
   Dir.mktmpdir do |dir|
     inc_dir = dir + "/" + ruby_dir + "/*.inc"
     hdr_dir = dir + "/" + ruby_dir + "/*.h"
-    more_hdr_dir = dir + "/" + ruby_dir + "/ccan/**/*.h"
+    more_hdr_dir = [
+      dir + "/" + ruby_dir + "/ccan/**/*.h",
+      dir + "/" + ruby_dir + "/internal/**/*.h"
+    ]
     Archive::Tar::Minitar.unpack(tgz, dir)
 
     dest_dir = get_dest_dir(ruby_dir, version, dir)
     puts dest_dir
     FileUtils.mkdir_p(dest_dir)
-    Dir.glob([ inc_dir, hdr_dir, more_hdr_dir ]).each do |file|
+    Dir.glob([ inc_dir, hdr_dir, more_hdr_dir ].flatten).each do |file|
       target = file.sub(dir + '/' + ruby_dir, dest_dir)
       FileUtils.mkdir_p(File.dirname(target))
       FileUtils.cp(file, target, verbose: false)
