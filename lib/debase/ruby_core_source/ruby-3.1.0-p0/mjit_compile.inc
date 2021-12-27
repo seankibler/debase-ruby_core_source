@@ -578,9 +578,8 @@ switch (insn) {
             fprintf(f, "    reg_cfp->sp = vm_base_ptr(reg_cfp) + %d;\n", b->stack_size);
         }
         fprintf(f, "    {\n");
-        fprintf(f, "        rb_cref_t * cref = vm_get_cref(GET_EP());\n");
         fprintf(f, "        rb_control_frame_t *cfp = GET_CFP();\n");
-        fprintf(f, "        val = vm_getclassvariable(GET_ISEQ(), cref, cfp, id, (ICVARC)ic);\n");
+        fprintf(f, "        val = vm_getclassvariable(GET_ISEQ(), cfp, id, (ICVARC)ic);\n");
         fprintf(f, "    }\n");
         fprintf(f, "    stack[%d] = val;\n", b->stack_size + (int)attr_sp_inc_getclassvariable(id, ic) - 1);
         fprintf(f, "    if (UNLIKELY(!mjit_call_p)) {\n");
@@ -626,7 +625,7 @@ switch (insn) {
         }
         fprintf(f, "    {\n");
         fprintf(f, "        vm_ensure_not_refinement_module(GET_SELF());\n");
-        fprintf(f, "        vm_setclassvariable(GET_ISEQ(), vm_get_cref(GET_EP()), GET_CFP(), id,  val, (ICVARC)ic);\n");
+        fprintf(f, "        vm_setclassvariable(GET_ISEQ(), GET_CFP(), id,  val, (ICVARC)ic);\n");
         fprintf(f, "    }\n");
         fprintf(f, "    if (UNLIKELY(!mjit_call_p)) {\n");
         fprintf(f, "        reg_cfp->sp = vm_base_ptr(reg_cfp) + %d;\n", b->stack_size + (int)attr_sp_inc_setclassvariable(id, ic));
@@ -904,7 +903,7 @@ switch (insn) {
         fprintf(f, "    value_type = (rb_num_t)0x%"PRIxVALUE";", operands[0]);
         fprintf(f, "\n");
         MAYBE_UNUSED(bool pc_moved_p) = false;
-        if (false) {
+        if (true) {
             fprintf(f, "    reg_cfp->pc = original_body_iseq + %d;\n", next_pos); /* ADD_PC(INSN_ATTR(width)); */
             pc_moved_p = true;
         }
@@ -920,6 +919,14 @@ switch (insn) {
         fprintf(f, "        val = vm_get_special_object(GET_EP(), type);\n");
         fprintf(f, "    }\n");
         fprintf(f, "    stack[%d] = val;\n", b->stack_size + (int)attr_sp_inc_putspecialobject(value_type) - 1);
+        fprintf(f, "    if (UNLIKELY(!mjit_call_p)) {\n");
+        fprintf(f, "        reg_cfp->sp = vm_base_ptr(reg_cfp) + %d;\n", b->stack_size + (int)attr_sp_inc_putspecialobject(value_type));
+        if (!pc_moved_p) {
+            fprintf(f, "        reg_cfp->pc = original_body_iseq + %d;\n", next_pos);
+        }
+        fprintf(f, "        RB_DEBUG_COUNTER_INC(mjit_cancel_invalidate_all);\n");
+        fprintf(f, "        goto cancel;\n");
+        fprintf(f, "    }\n");
         b->stack_size += attr_sp_inc_putspecialobject(value_type);
     }
     fprintf(f, "}\n");
@@ -996,7 +1003,7 @@ switch (insn) {
     fprintf(f, "}\n");
     break;
   }
-  case BIN(tostring): {
+  case BIN(anytostring): {
     fprintf(f, "{\n");
     {
         if (status->local_stack_p) {
@@ -1019,8 +1026,8 @@ switch (insn) {
         fprintf(f, "    {\n");
         fprintf(f, "        val = rb_obj_as_string_result(str, val);\n");
         fprintf(f, "    }\n");
-        fprintf(f, "    stack[%d] = val;\n", b->stack_size + (int)attr_sp_inc_tostring() - 1);
-        b->stack_size += attr_sp_inc_tostring();
+        fprintf(f, "    stack[%d] = val;\n", b->stack_size + (int)attr_sp_inc_anytostring() - 1);
+        b->stack_size += attr_sp_inc_anytostring();
     }
     fprintf(f, "}\n");
     break;
@@ -2246,6 +2253,56 @@ switch (insn) {
         fprintf(f, "        goto cancel;\n");
         fprintf(f, "    }\n");
         b->stack_size += attr_sp_inc_opt_send_without_block(cd);
+    }
+    fprintf(f, "}\n");
+    break;
+  }
+  case BIN(objtostring): {
+    fprintf(f, "{\n");
+    {
+        MAYBE_UNUSED(CALL_DATA cd) = (CALL_DATA)operands[0];
+        if (status->local_stack_p) {
+            fprintf(f, "    MAYBE_UNUSED(unsigned int) stack_size = %u;\n", b->stack_size);
+        }
+        fprintf(f, "    MAYBE_UNUSED(CALL_DATA) cd;\n");
+        fprintf(f, "    MAYBE_UNUSED(VALUE) recv, val;\n");
+
+        fprintf(f, "    cd = (CALL_DATA)0x%"PRIxVALUE";", operands[0]);
+        comment_id(f, vm_ci_mid(((CALL_DATA)operands[0])->ci));
+        fprintf(f, "\n");
+        fprintf(f, "    recv = stack[%d];\n", b->stack_size - 1);
+        MAYBE_UNUSED(bool pc_moved_p) = false;
+        if (true) {
+            fprintf(f, "    reg_cfp->pc = original_body_iseq + %d;\n", next_pos); /* ADD_PC(INSN_ATTR(width)); */
+            pc_moved_p = true;
+        }
+        if (status->local_stack_p) {
+        }
+        else {
+            fprintf(f, "    reg_cfp->sp = vm_base_ptr(reg_cfp) + %d;\n", b->stack_size);
+        }
+        fprintf(f, "    {\n");
+        fprintf(f, "        val = vm_objtostring(GET_ISEQ(), recv, cd);\n");
+        fprintf(f, "\n");
+        fprintf(f, "        if (val == Qundef) {\n");
+        if (status->local_stack_p) {
+            fprintf(f, "            reg_cfp->sp = vm_base_ptr(reg_cfp) + %d;\n", b->stack_size);
+        }
+        fprintf(f, "            reg_cfp->pc = original_body_iseq + %d;\n", pos);
+        fprintf(f, "            RB_DEBUG_COUNTER_INC(mjit_cancel_opt_insn);\n");
+        fprintf(f, "            goto cancel;\n");
+        fprintf(f, "        }\n");
+        fprintf(f, "    }\n");
+        fprintf(f, "    stack[%d] = val;\n", b->stack_size + (int)attr_sp_inc_objtostring(cd) - 1);
+        fprintf(f, "    if (UNLIKELY(!mjit_call_p)) {\n");
+        fprintf(f, "        reg_cfp->sp = vm_base_ptr(reg_cfp) + %d;\n", b->stack_size + (int)attr_sp_inc_objtostring(cd));
+        if (!pc_moved_p) {
+            fprintf(f, "        reg_cfp->pc = original_body_iseq + %d;\n", next_pos);
+        }
+        fprintf(f, "        RB_DEBUG_COUNTER_INC(mjit_cancel_invalidate_all);\n");
+        fprintf(f, "        goto cancel;\n");
+        fprintf(f, "    }\n");
+        b->stack_size += attr_sp_inc_objtostring(cd);
     }
     fprintf(f, "}\n");
     break;

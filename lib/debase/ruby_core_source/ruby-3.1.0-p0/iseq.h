@@ -117,6 +117,7 @@ struct iseq_compile_data {
     const rb_compile_option_t *option;
     struct rb_id_table *ivar_cache_table;
     const struct rb_builtin_function *builtin_function_table;
+    const NODE *root_node;
 #if OPT_SUPPORT_JOKE
     st_table *labels_table;
 #endif
@@ -159,7 +160,7 @@ const rb_iseq_t *rb_iseq_ibf_load(VALUE str);
 const rb_iseq_t *rb_iseq_ibf_load_bytes(const char *cstr, size_t);
 VALUE rb_iseq_ibf_load_extra_data(VALUE str);
 void rb_iseq_init_trace(rb_iseq_t *iseq);
-int rb_iseq_add_local_tracepoint_recursively(const rb_iseq_t *iseq, rb_event_flag_t turnon_events, VALUE tpval, unsigned int target_line);
+int rb_iseq_add_local_tracepoint_recursively(const rb_iseq_t *iseq, rb_event_flag_t turnon_events, VALUE tpval, unsigned int target_line, bool target_bmethod);
 int rb_iseq_remove_local_tracepoint_recursively(const rb_iseq_t *iseq, VALUE tpval);
 const rb_iseq_t *rb_iseq_load_iseq(VALUE fname);
 
@@ -197,6 +198,7 @@ const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 
 VALUE rb_iseq_absolute_path(const rb_iseq_t *iseq); /* obsolete */
 int rb_iseq_from_eval_p(const rb_iseq_t *iseq);
+VALUE rb_iseq_type(const rb_iseq_t *iseq);
 VALUE rb_iseq_label(const rb_iseq_t *iseq);
 VALUE rb_iseq_base_label(const rb_iseq_t *iseq);
 VALUE rb_iseq_first_lineno(const rb_iseq_t *iseq);

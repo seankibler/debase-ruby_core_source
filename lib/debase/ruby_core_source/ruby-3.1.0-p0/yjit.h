@@ -15,6 +15,13 @@
 # define YJIT_STATS RUBY_DEBUG
 #endif
 
+// We generate x86 assembly and rely on mmap(2).
+#if defined(__x86_64__) && !defined(_WIN32)
+# define YJIT_SUPPORTED_P 1
+#else
+# define YJIT_SUPPORTED_P 0
+#endif
+
 struct rb_yjit_options {
     // Enable compilation with YJIT
     bool yjit_enabled;
@@ -28,6 +35,9 @@ struct rb_yjit_options {
 
     // Generate versions greedily until the limit is hit
     bool greedy_versioning;
+
+    // Disable the propagation of type information
+    bool no_type_prop;
 
     // Maximum number of versions per block
     // 1 means always create generic versions
@@ -57,7 +67,7 @@ void rb_yjit_iseq_mark(const struct rb_iseq_constant_body *body);
 void rb_yjit_iseq_update_references(const struct rb_iseq_constant_body *body);
 void rb_yjit_iseq_free(const struct rb_iseq_constant_body *body);
 void rb_yjit_before_ractor_spawn(void);
-void rb_yjit_constant_ic_update(const rb_iseq_t *iseq, IC ic);
+void rb_yjit_constant_ic_update(const rb_iseq_t *const iseq, IC ic);
 void rb_yjit_tracing_invalidate_all(void);
 
 #endif // #ifndef YJIT_H

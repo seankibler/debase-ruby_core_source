@@ -12,7 +12,6 @@
 **********************************************************************/
 
 #include "ruby/ruby.h"
-#include "node.h"
 
 RUBY_SYMBOL_EXPORT_BEGIN
 
@@ -21,14 +20,20 @@ RUBY_SYMBOL_EXPORT_BEGIN
 #define dpi(i)   ruby_debug_print_id(-1, 0, "", (i))
 #define dpn(n)   ruby_debug_print_node(-1, 0, "", (n))
 
+struct RNode;
+
 VALUE ruby_debug_print_value(int level, int debug_level, const char *header, VALUE v);
 ID    ruby_debug_print_id(int level, int debug_level, const char *header, ID id);
-NODE *ruby_debug_print_node(int level, int debug_level, const char *header, const NODE *node);
+struct RNode *ruby_debug_print_node(int level, int debug_level, const char *header, const struct RNode *node);
 int   ruby_debug_print_indent(int level, int debug_level, int indent_level);
 void  ruby_debug_gc_check_func(void);
 void ruby_set_debug_option(const char *str);
 
 RUBY_SYMBOL_EXPORT_END
+
+#ifndef RUBY_DEVEL
+# define RUBY_DEVEL 0
+#endif
 
 #if RUBY_DEVEL
 #ifndef USE_RUBY_DEBUG_LOG
@@ -96,7 +101,7 @@ bool ruby_debug_log_filter(const char *func_name);
 // You can use this macro for temporary usage (you should not commit it).
 #define _RUBY_DEBUG_LOG(...) ruby_debug_log(__FILE__, __LINE__, RUBY_FUNCTION_NAME_STRING, "" __VA_ARGS__)
 
-#if USE_RUBY_DEBUG_LOG
+#if defined(USE_RUBY_DEBUG_LOG) && USE_RUBY_DEBUG_LOG
 # define RUBY_DEBUG_LOG_ENABLED(func_name) \
     (ruby_debug_log_mode && ruby_debug_log_filter(func_name))
 
