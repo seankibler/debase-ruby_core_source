@@ -1,3 +1,7 @@
+## [0.10.18](https://github.com/ruby-debug/debase-ruby_core_source/compare/v0.10.17...v0.10.18)
+
+* ruby-3.2.0-preview3 added
+
 ## [0.10.17](https://github.com/ruby-debug/debase-ruby_core_source/compare/v0.10.16...v0.10.17)
 
 * ruby-3.2.0-preview2 added
