@@ -288,13 +288,14 @@ rb_ractor_id(const rb_ractor_t *r)
 }
 
 #if RACTOR_CHECK_MODE > 0
+# define RACTOR_BELONGING_ID(obj) (*(uint32_t *)(((uintptr_t)(obj)) + rb_gc_obj_slot_size(obj)))
+
 uint32_t rb_ractor_current_id(void);
 
 static inline void
 rb_ractor_setup_belonging_to(VALUE obj, uint32_t rid)
 {
-    VALUE flags = RBASIC(obj)->flags & 0xffffffff; // 4B
-    RBASIC(obj)->flags = flags | ((VALUE)rid << 32);
+    RACTOR_BELONGING_ID(obj) = rid;
 }
 
 static inline void
@@ -310,7 +311,7 @@ rb_ractor_belonging(VALUE obj)
         return 0;
     }
     else {
-        return RBASIC(obj)->flags >> 32;
+        return RACTOR_BELONGING_ID(obj);
     }
 }
 

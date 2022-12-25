@@ -38,6 +38,7 @@ static inline void ROBJ_TRANSIENT_UNSET(VALUE obj);
 
 struct gen_ivtbl;
 int rb_gen_ivtbl_get(VALUE obj, ID id, struct gen_ivtbl **ivtbl);
+int rb_obj_evacuate_ivs_to_hash_table(ID key, VALUE val, st_data_t arg);
 
 RUBY_SYMBOL_EXPORT_BEGIN
 /* variable.c (export) */
@@ -57,6 +58,7 @@ void rb_const_warn_if_deprecated(const rb_const_entry_t *, VALUE, ID);
 rb_shape_t * rb_grow_iv_list(VALUE obj);
 void rb_ensure_iv_list_size(VALUE obj, uint32_t len, uint32_t newsize);
 struct gen_ivtbl * rb_ensure_generic_iv_list_size(VALUE obj, uint32_t newsize);
+attr_index_t rb_obj_ivar_set(VALUE obj, ID id, VALUE val);
 MJIT_SYMBOL_EXPORT_END
 
 static inline bool
