@@ -1,3 +1,10 @@
+## [3.2.0](https://github.com/ruby-debug/debase-ruby_core_source/compare/v0.10.18...v3.2.0)
+
+* ruby-3.2.0 sources added
+* ruby-3.2.0 preview sources removed
+* ruby-2.0.x sources removed (let's keep 10 last releases here)
+* versioning changed to match current ruby version
+
 ## [0.10.18](https://github.com/ruby-debug/debase-ruby_core_source/compare/v0.10.17...v0.10.18)
 
 * ruby-3.2.0-preview3 added
