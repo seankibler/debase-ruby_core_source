@@ -1,3 +1,8 @@
+## [3.2.1](https://github.com/ruby-debug/debase-ruby_core_source/compare/3.2.1...v3.2.0)
+
+* ruby-3.3.0-preview1 sources added
+* tags naming changed to the version without v
+
 ## [3.2.0](https://github.com/ruby-debug/debase-ruby_core_source/compare/v0.10.18...v3.2.0)
 
 * ruby-3.2.0 sources added
